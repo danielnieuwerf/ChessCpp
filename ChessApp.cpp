@@ -6,157 +6,60 @@
 using namespace std;
 
 //function prototypes in alphabetical order
-void initialBoard(char[8][8]);
-void printBoard(char[8][8],bool);
-void makeMove(char[8][8],string);
-bool validString(string);
-bool validMove(char[8][8], string, bool);
-bool enPassantAttempt(char[8][8], string, string);
-string getFile(char[8][8], int);
-string getRank(char[8][8], int);
-bool whiteKingIsInCheck(char[8][8], int, int);
-bool blackKingIsInCheck(char[8][8], int, int);
-bool stillInCheck(char[8][8],string);
-bool pawnPromotionNeeded(char[8][8]);
-char pawnPromotion(char[8][8], bool);
-vector<int> findWhiteKing(char[8][8]);
-vector<int> findBlackKing(char[8][8]);
-void whiteCastle(char[8][8], bool, string);
+
 void blackCastle(char[8][8], bool, string);
-bool isCheckmate(char[8][8], bool);
-bool isStalemate(char[8][8], bool);
-bool whiteCastleMoveIsValid(char[8][8], bool, string);
 bool blackCastleMoveIsValid(char[8][8], bool, string);
+bool blackKingIsInCheck(char[8][8], int, int);
+bool enPassantAttempt(char[8][8], string, string);
+vector<int> findBlackKing(char[8][8]);
+vector<int> findWhiteKing(char[8][8]);
 void gameResult();
-bool makeEnPassentMove(char[8][8], string, string);
 string getEast(char[8][8], int, int);
+string getFile(char[8][8], int);
 string getNorth(char[8][8], int, int);
 string getNorthEast(char[8][8], int, int);
 string getNorthWest(char[8][8], int, int);
+string getRank(char[8][8], int);
 string getSouth(char[8][8], int, int);
 string getSouthEast(char[8][8], int, int);
 string getSouthWest(char[8][8], int, int);
 string getWest(char[8][8], int, int);
+bool isCheckmate(char[8][8], bool);
+void initialBoard(char[8][8]);
+bool isStalemate(char[8][8], bool);
+bool makeEnPassentMove(char[8][8], string, string);
+void makeMove(char[8][8], string);
+void newGame();
+char pawnPromotion(char[8][8], bool);
+bool pawnPromotionNeeded(char[8][8]);
+void printBoard(char[8][8], bool);
+bool stillInCheck(char[8][8], string);
+bool validMove(char[8][8], string, bool);
+bool validString(string);
+void whiteCastle(char[8][8], bool, string);
+bool whiteCastleMoveIsValid(char[8][8], bool, string);
+bool whiteKingIsInCheck(char[8][8], int, int);
 
-int main()
-{
-    bool gameover = false, checkmate=false, stalemate=false;
-    bool whiteCanCastle=true, blackCanCastle = true;
-    bool whiteTurn = true;
-    char board[8][8];
-    int whiteKingRow=7;         // position of kings initially
-    int whiteKingCol=4;         // keep track of these 
-    int blackKingRow=0;         // throughout the game
-    int blackKingCol=4;
+int main(){
 
-    // initialise board and display it
-    initialBoard(board);
-    printBoard(board,whiteTurn);
-    string s{};                 // move inputs stored in string
-    string previousMove="1111"; // stores previous move for en passant logic
-
-    //play game until gameover
-    while (!gameover) {
-        cin >> s;
-        while(!validString(s)){ 
-            cout << "invalid move, try another: ";
-            cin >> s; 
-        }
-        if (makeEnPassentMove(board,s,previousMove)) {
-            // en passant move was made 
-            // flip whiteTurn
-            whiteTurn = !whiteTurn;
-            //update previous move
-            previousMove = s;
-            //clear screen and display board again
-            std::system("CLS");
-            printBoard(board, whiteTurn);
-            //if check display check
-            if (whiteKingIsInCheck(board, whiteKingRow, whiteKingCol) ||
-                blackKingIsInCheck(board, blackKingRow, blackKingCol)) {
-                cout << "\nCheck!";
-            }
-        }
-        else if (stillInCheck(board, s)) { cout << "invalid move, try another: "; }
-        // special moves castling and en passant
-        else if((s=="7476"||s=="7472" )){ 
-            //if move is valid, castle
-            if (whiteCastleMoveIsValid(board, whiteCanCastle, s)) {
-                whiteCastle(board, whiteCanCastle, s);
-                //white can no longer castle
-                whiteCanCastle = false;
-                // flip whiteTurn
-                whiteTurn = false;
-                // set previous move
-                previousMove = s;
-                //clear screen and display board again
-                std::system("CLS");
-                printBoard(board, whiteTurn);
-            }
-            else { cout << "invalid move, try another: "; }
-        }
-        else if ((s == "0406" || s == "0402")) {
-            //if move is valid, castle
-            if (blackCastleMoveIsValid(board, blackCanCastle, s)) {
-                blackCastle(board, whiteCanCastle, s);
-                //black can no longer castle
-                blackCanCastle = false;
-                // flip whiteTurn
-                whiteTurn = true;
-                // set previous move
-                previousMove = s;
-                //clear screen and display board again
-                std::system("CLS");
-                printBoard(board, whiteTurn);
-            }
-            else { cout << "invalid move, try another: "; }
-        }
-        else if (validMove(board, s, whiteTurn)) {
-            //if move is valid and no longer in check, make the move
-            makeMove(board, s);
-            // update king position and castlability
-            int r = (int)s[2] - 48, c = (int)s[3] - 48;
-            char temp = board[r][c];
-            if (temp == 'k') {
-                whiteKingRow = r;
-                whiteKingCol = c;
-                whiteCanCastle = false;
-            }
-            else if (temp == 'K') {
-                blackKingRow = r;
-                blackKingCol = c;
-                blackCanCastle = false;
-            }
-
-            // check for pawn promotion CAN BE MORE EFFICIENT
-            bool pawnPromo=pawnPromotionNeeded(board);
-            if (pawnPromo) {
-                board[r][c] = pawnPromotion(board, whiteTurn);
-            }
-            // flip whiteTurn
-            whiteTurn = !whiteTurn;
-            //update previous move
-            previousMove = s;
-            //clear screen and display board again
-            std::system("CLS");
-            printBoard(board,whiteTurn);
-            //if check display check
-            if (whiteKingIsInCheck(board, whiteKingRow, whiteKingCol) ||
-                blackKingIsInCheck(board, blackKingRow, blackKingCol)) {
-                cout << "\nCheck!";
-            }
-             }
-        else { cout << "invalid move, try another: "; }
-        // check for checkmate or stalemate
-        if (isStalemate(board,whiteTurn)) { stalemate = true; }
-        else if (isCheckmate(board,whiteTurn)) { checkmate = true; }
-        if(checkmate || stalemate){ gameover=true; }
-    }
-    gameResult();
-
+    newGame();
 }
 
 //function definitions in alphabetical order
+void blackCastle(char b[8][8], bool bcc, string move) {
+    if (move == "0406") {
+        b[0][6] = 'K';
+        b[0][5] = 'R';
+        b[0][4] = '.';
+        b[0][7] = '.';
+    }
+    else if (move == "0402") {
+        b[0][2] = 'K';
+        b[0][3] = 'R';
+        b[0][0] = '.';
+        b[0][4] = '.';
+    }
+}
 void initialBoard(char b[8][8]){
     b[0][0] = b[0][7] = 'R';
     b[0][1] = b[0][6] = 'N';
@@ -682,40 +585,74 @@ bool whiteKingIsInCheck(char b[8][8], int r, int c) {
     if (r <= 6 && b[r + 1][c] == 'K') { return true; }
 
     ////start at king position and look out in every direction
-    //// Diagonals 
-    //string diag1 = getDiagDown(b, r, c);
-    //string diag2 = getDiagUp(b, r, c);
-    //string d1{}, d2{};
-    ////erase empty spaces and set bishops and queens to 'X'
-    //for (auto c : diag1) {
-    //    if(c!='.'){
-    //        if (c == 'B' || c == 'Q') { 
-    //            d1 += 'X'; 
-    //        }
-    //        else {
-    //            d1 += c;
-    //        }
-    //    }
-    //}
-    //for (auto c : diag2) {
-    //    if (c != '.') {
-    //        if (c == 'B' || c == 'Q') {
-    //            d2 += 'X';
-    //        }
-    //        else {
-    //            d2 += c;
-    //        }
-    //    }
-    //}
-    //// if kX or Xk in d1 or d2 return true
-    //auto found = d1.find("Xk");
-    //if (found != string::npos) { return true; }
-    //auto found2 = d1.find("kX");
-    //if (found2 != string::npos) { return true; }
-    //auto found3 = d2.find("Xk");
-    //if (found3 != string::npos) { return true; }
-    //auto found4 = d2.find("kX");
-    //if (found4 != string::npos) { return true; }
+
+    // Diagonals 
+    string diag1 = 'k' + getNorthEast(b, r, c);
+    string diag2 = 'k' + getNorthWest(b, r, c);
+    string diag3 = 'k' + getSouthEast(b, r, c);
+    string diag4 = 'k' + getSouthWest(b, r, c);
+    string d1{}, d2{}, d3{}, d4{};
+    //erase empty spaces and set bishops and queens to 'X'
+    // if kX is in the leftover string return true
+    for (auto c : diag1) {
+        if(c != '.'){
+            if (c == 'B' || c == 'Q') { 
+                d1 += 'X'; 
+            }
+            else {
+                d1 += c;
+            }
+        }
+    }
+    auto found = d1.find("kX");
+    if (found != string::npos) {
+        return true;
+    }
+
+    for (auto c : diag2) {
+        if (c != '.') {
+            if (c == 'B' || c == 'Q') {
+                d2 += 'X';
+            }
+            else {
+                d2 += c;
+            }
+        }
+    }
+    auto found2 = d2.find("kX");
+    if (found2 != string::npos) {
+        return true;
+    }
+
+    for (auto c : diag3) {
+        if (c != '.') {
+            if (c == 'B' || c == 'Q') {
+                d3 += 'X';
+            }
+            else {
+                d3 += c;
+            }
+        }
+    }
+    auto found3 = d3.find("kX");
+    if (found3 != string::npos) {
+        return true;
+    }
+
+    for (auto c : diag4) {
+        if (c != '.') {
+            if (c == 'B' || c == 'Q') {
+                d4 += 'X';
+            }
+            else {
+                d4 += c;
+            }
+        }
+    }
+    auto found4 = d4.find("kX");
+    if (found4 != string::npos) { 
+        return true; 
+    }
 
     //horizontal and vertical
     string file = getFile(b, c);
@@ -782,40 +719,73 @@ bool blackKingIsInCheck(char b[8][8], int r, int c) {
     if (r <= 6 && c >= 1 && b[r + 1][c - 1] == 'k') { return true; }
     if (r <= 6 && b[r + 1][c] == 'k') { return true; }
 
-    //// Diagonals 
-    //string diag1 = getDiagDown(b, r, c);
-    //string diag2 = getDiagUp(b, r, c);
-    //string d1{}, d2{};
-    ////erase empty spaces and set bishops and queens to 'x'
-    //for (auto c : diag1) {
-    //    if (c != '.') {
-    //        if (c == 'b' || c == 'q') {
-    //            d1 += 'x';
-    //        }
-    //        else {
-    //            d1 += c;
-    //        }
-    //    }
-    //}
-    //for (auto c : diag2) {
-    //    if (c != '.') {
-    //        if (c == 'b' || c == 'q') {
-    //            d2 += 'x';
-    //        }
-    //        else {
-    //            d2 += c;
-    //        }
-    //    }
-    //}
-    //// if Kx or xK in d1 or d2 return true
-    //auto found = d1.find("xK");
-    //if (found != string::npos) { return true; }
-    //auto found2 = d1.find("Kx");
-    //if (found2 != string::npos) { return true; }
-    //auto found3 = d2.find("xK");
-    //if (found3 != string::npos) { return true; }
-    //auto found4 = d2.find("Kx");
-    //if (found4 != string::npos) { return true; }
+    // Diagonals 
+    string diag1 = 'K' + getNorthEast(b, r, c);
+    string diag2 = 'K' + getNorthWest(b, r, c);
+    string diag3 = 'K' + getSouthEast(b, r, c);
+    string diag4 = 'K' + getSouthWest(b, r, c);
+    string d1{}, d2{}, d3{}, d4{};
+    //erase empty spaces and set bishops and queens to 'X'
+    // if kX is in the leftover string return true
+    for (auto c : diag1) {
+        if (c != '.') {
+            if (c == 'b' || c == 'q') {
+                d1 += 'x';
+            }
+            else {
+                d1 += c;
+            }
+        }
+    }
+    auto found = d1.find("Kx");
+    if (found != string::npos) {
+        return true;
+    }
+
+    for (auto c : diag2) {
+        if (c != '.') {
+            if (c == 'b' || c == 'q') {
+                d2 += 'x';
+            }
+            else {
+                d2 += c;
+            }
+        }
+    }
+    auto found2 = d2.find("Kx");
+    if (found2 != string::npos) {
+        return true;
+    }
+
+    for (auto c : diag3) {
+        if (c != '.') {
+            if (c == 'b' || c == 'q') {
+                d3 += 'x';
+            }
+            else {
+                d3 += c;
+            }
+        }
+    }
+    auto found3 = d3.find("Kx");
+    if (found3 != string::npos) {
+        return true;
+    }
+
+    for (auto c : diag4) {
+        if (c != '.') {
+            if (c == 'b' || c == 'q') {
+                d4 += 'x';
+            }
+            else {
+                d4 += c;
+            }
+        }
+    }
+    auto found4 = d4.find("Kx");
+    if (found4 != string::npos) {
+        return true;
+    }
 
     //horizontal and vertical
     string file = getFile(b, c);
@@ -963,20 +933,6 @@ void whiteCastle(char b[8][8],bool wcc, string move){
         b[7][4] = '.';
     }
 }
-void blackCastle(char b[8][8], bool bcc, string move) {
-    if (move == "0406") {                
-        b[0][6] = 'K';
-        b[0][5] = 'R';
-        b[0][4] = '.';
-        b[0][7] = '.';
-    }
-    else if (move == "0402") {         
-        b[0][2] = 'K';            
-        b[0][3] = 'R';      
-        b[0][0] = '.';
-        b[0][4] = '.';
-    }   
-}
 bool whiteCastleMoveIsValid(char b[8][8], bool wcc, string move ) {
     /* return true if white castle move is valid:
     This means there are no pieces on the kings path or enemy
@@ -1048,7 +1004,7 @@ bool blackCastleMoveIsValid(char b[8][8], bool bcc, string move) {
             }
         }
         makeMove(copy, "0405");
-        if (whiteKingIsInCheck(copy, 0, 5)) { return false; }
+        if (blackKingIsInCheck(copy, 0, 5)) { return false; }
     }
     else if (move == "0402") {
         //return false if there are pieces in the king's castling path
@@ -1065,7 +1021,7 @@ bool blackCastleMoveIsValid(char b[8][8], bool bcc, string move) {
             }
         }
         makeMove(copy, "0403");
-        if (whiteKingIsInCheck(copy, 0, 3)) { return false; }
+        if (blackKingIsInCheck(copy, 0, 3)) { return false; }
     }
     return true;
 }
@@ -1088,7 +1044,7 @@ void gameResult() {
         //new game
     }     
 }
-bool enPassantAttempt(char b[8][8], string m,string pm) {
+bool enPassantAttempt(char b[8][8], string m, string pm) {
 /*  returns true if an attempt was made to move a pawn
     diagonally forward onto an empty square from row 3 or 4
     depending on colour
@@ -1299,6 +1255,132 @@ string getSouthEast(char b[8][8], int r, int c) {
     }
     return ans;
 }
+void newGame() {
+    bool gameover = false, checkmate = false, stalemate = false;
+    bool whiteCanCastle = true, blackCanCastle = true;
+    bool whiteTurn = true;
+    char board[8][8];
+    int whiteKingRow = 7;         // position of kings initially
+    int whiteKingCol = 4;         // keep track of these 
+    int blackKingRow = 0;         // throughout the game
+    int blackKingCol = 4;
+
+    // initialise board and display it
+    initialBoard(board);
+    printBoard(board, whiteTurn);
+    string s{};                 // move inputs stored in string
+    string previousMove = "1111"; // stores previous move for en passant logic
+
+    //play game until gameover
+    while (!gameover) {
+        cin >> s;
+        while (!validString(s)) {
+            cout << "invalid move, try another: ";
+            cin >> s;
+        }
+        if (makeEnPassentMove(board, s, previousMove)) {
+            // en passant move was made 
+            // flip whiteTurn
+            whiteTurn = !whiteTurn;
+            //update previous move
+            previousMove = s;
+            //clear screen and display board again
+            std::system("CLS");
+            printBoard(board, whiteTurn);
+            //if check display check
+            if (whiteKingIsInCheck(board, whiteKingRow, whiteKingCol) ||
+                blackKingIsInCheck(board, blackKingRow, blackKingCol)) {
+                cout << "\nCheck!";
+            }
+        }
+        else if (stillInCheck(board, s)) {
+            cout << "invalid move, try another: ";
+        }
+        // special moves castling and en passant
+        else if ((s == "7476" || s == "7472")) {
+            //if move is valid, castle
+            if (whiteCastleMoveIsValid(board, whiteCanCastle, s)) {
+                whiteCastle(board, whiteCanCastle, s);
+                //white can no longer castle
+                whiteCanCastle = false;
+                // flip whiteTurn
+                whiteTurn = false;
+                // set previous move
+                previousMove = s;
+                //clear screen and display board again
+                std::system("CLS");
+                printBoard(board, whiteTurn);
+            }
+            else { cout << "invalid move, try another: "; }
+        }
+        else if ((s == "0406" || s == "0402")) {
+            //if move is valid, castle
+            if (blackCastleMoveIsValid(board, blackCanCastle, s)) {
+                blackCastle(board, whiteCanCastle, s);
+                //black can no longer castle
+                blackCanCastle = false;
+                // flip whiteTurn
+                whiteTurn = true;
+                // set previous move
+                previousMove = s;
+                //clear screen and display board again
+                std::system("CLS");
+                printBoard(board, whiteTurn);
+            }
+            else { cout << "invalid move, try another: "; }
+        }
+        else if (validMove(board, s, whiteTurn)) {
+            //if move is valid and no longer in check, make the move
+            makeMove(board, s);
+            // update king position and castlability
+            int r = (int)s[2] - 48, c = (int)s[3] - 48;
+            char temp = board[r][c];
+            if (temp == 'k') {
+                whiteKingRow = r;
+                whiteKingCol = c;
+                whiteCanCastle = false;
+            }
+            else if (temp == 'K') {
+                blackKingRow = r;
+                blackKingCol = c;
+                blackCanCastle = false;
+            }
+
+            // check for pawn promotion CAN BE MORE EFFICIENT
+            bool pawnPromo = pawnPromotionNeeded(board);
+            if (pawnPromo) {
+                board[r][c] = pawnPromotion(board, whiteTurn);
+            }
+            // flip whiteTurn
+            whiteTurn = !whiteTurn;
+            //update previous move
+            previousMove = s;
+            //clear screen and display board again
+            std::system("CLS");
+            printBoard(board, whiteTurn);
+            //if check display check
+            if (whiteKingIsInCheck(board, whiteKingRow, whiteKingCol) ||
+                blackKingIsInCheck(board, blackKingRow, blackKingCol)) {
+                cout << "\nCheck!";
+            }
+        }
+        else {
+            cout << "invalid move, try another: ";
+        }
+        // check for checkmate or stalemate
+        if (isStalemate(board, whiteTurn)) {
+            stalemate = true;
+        }
+        else if (isCheckmate(board, whiteTurn)) {
+            checkmate = true;
+        }
+        if (checkmate || stalemate) {
+            gameover = true;
+        }
+    }
+    gameResult();
+
+}
 
 
 /*
@@ -1309,5 +1391,6 @@ define CHECKMATE n stalemate
 // include king pos in parameters
 
 after game save/new/quit
+
 
 *///code review
