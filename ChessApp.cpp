@@ -37,6 +37,7 @@ char pawnPromotion(char[8][8], bool);
 bool pawnPromotionNeeded(char[8][8]);
 void printBoard(char[8][8], bool);
 void rules();
+void savedGames();
 bool stillInCheck(char[8][8], string);
 bool validMove(char[8][8], string, bool);
 bool validString(string);
@@ -455,10 +456,11 @@ void howToPlay() {
     cout << "otherwise the message \"invalid move\" " << endl;
     cout << "will appear and you'll be prompted to " << endl;
     cout << "choose another move." << endl;
-    char x;
     cout << "\n\nIf you wish to resign make the move \"R\"." << endl;
     cout << "\n\nEnter b to go back to menu: ";
-    cin >> x;
+
+    string s{};
+    cin >> s;
     system("cls");
     menu();
 
@@ -521,6 +523,16 @@ bool isDrawByLackOfMaterial(char b[8][8]) {
     }
 
     if (pieces == "kK" || pieces == "Kk") {
+        return true;
+    }
+
+    string temp{};
+    for (auto c : pieces) {
+        temp += tolower(c);
+    }
+
+    sort(temp.begin(), temp.end());
+    if (temp == "bkk" || temp == "kkn") {
         return true;
     }
 
@@ -622,6 +634,7 @@ void menu() {
     cout << "Welcome to ChessApp menu" << endl;
     cout << "-Enter n to play new game " << endl;
     cout << "-Enter r to view the rules" << endl;
+    cout << "-Enter s to view saved games" << endl;
     cout << "-Enter h to view how to play" << endl;
     cout << "-Enter q to quit" << endl;
 
@@ -634,6 +647,10 @@ void menu() {
     else if (x == 'r') {
         system("cls");
         rules();
+    }
+    else if (x == 's') {
+        system("cls");
+        savedGames();
     }
     else if (x == 'h') {
         system("cls");
@@ -843,14 +860,23 @@ void rules() {
     cout << "- Castling" << endl;
     cout << "- En Passant" << endl;
     cout << "- Pawn promotion" << endl;
-    cout << "- Draw by insufficient material(INCOMPLETE)" << endl;
+    cout << "- Draw by insufficient material" << endl;
     cout << "- Stalemate" << endl;
     cout << "- Check & Checkmate" << endl;
     cout << "- Draw by threefold repetition(TODO)" << endl;
 
-    char x;
-    cout << "\nEnter b to go back to menu";
-    cin >> x;
+
+    cout << "\nEnter b to go back to menu: ";
+    string s{};
+    cin >> s;
+    system("cls");
+    menu();
+}
+void savedGames() {
+    cout << "No saved games" << endl;
+    cout << "\nEnter b to go back to menu: " << endl;
+    string s{};
+    cin >> s;
     system("cls");
     menu();
 }
@@ -1526,10 +1552,10 @@ To do list
 
 define CHECKMATE n stalemate
 
-define draw by lack of material
-
+threefold repetition
+hashmap of 2d arrays mapping to ints
+if it maps to 3 return true
 
 save game feature
-
 
 */
