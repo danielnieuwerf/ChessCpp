@@ -13,7 +13,7 @@ bool blackKingIsInCheck(char[8][8], int, int);
 bool enPassantAttempt(char[8][8], string, string);
 vector<int> findBlackKing(char[8][8]);
 vector<int> findWhiteKing(char[8][8]);
-void gameResult();
+void gameResult(bool, bool, bool);
 string getEast(char[8][8], int, int);
 string getFile(char[8][8], int);
 string getNorth(char[8][8], int, int);
@@ -24,15 +24,19 @@ string getSouth(char[8][8], int, int);
 string getSouthEast(char[8][8], int, int);
 string getSouthWest(char[8][8], int, int);
 string getWest(char[8][8], int, int);
-bool isCheckmate(char[8][8], bool);
+void howToPlay();
 void initialBoard(char[8][8]);
-bool isStalemate(char[8][8], bool);
+bool isCheckmate(char[8][8], bool, int, int, int, int);
+bool isDrawByLackOfMaterial(char[8][8]);
+bool isStalemate(char[8][8], bool, int, int, int, int);
 bool makeEnPassentMove(char[8][8], string, string);
 void makeMove(char[8][8], string);
+void menu();
 void newGame();
 char pawnPromotion(char[8][8], bool);
 bool pawnPromotionNeeded(char[8][8]);
 void printBoard(char[8][8], bool);
+void rules();
 bool stillInCheck(char[8][8], string);
 bool validMove(char[8][8], string, bool);
 bool validString(string);
@@ -41,8 +45,7 @@ bool whiteCastleMoveIsValid(char[8][8], bool, string);
 bool whiteKingIsInCheck(char[8][8], int, int);
 
 int main(){
-
-    newGame();
+    menu();
 }
 
 //function definitions in alphabetical order
@@ -301,23 +304,32 @@ vector<int> findWhiteKing(char b[8][8]) {
     }
     return { -1,-1 };
 };
-void gameResult() {
+void gameResult(bool ww, bool bw, bool draw) {
+    if (draw) {
+        cout << "Game over! The game was a draw." << endl;
+    }
+    else if (ww) {
+        cout << "Game over! White won." << endl;
+    }
+    else if (bw) {
+        cout << "Game over! Black won." << endl;
+    }
     char x;
-    cout << "Game over! White won/ Black won or draw" << endl;
     cout << "Enter 's' to save game, 'q' to quit or 'n' for new game: ";
     cin >> x;
     if (x == 's') {
         //save game
         cout << "Game saved!" << endl;
-        cout << "Enter q to quit or n for new game: ";
+        cout << "Enter q to quit to menu, or n for new game: ";
         cin >> x;
     }
     if (x == 'q') {
         std::system("CLS");
-        cout << "Thank you for playing! Good bye.";
+        menu();
     }
     else if (x == 'n') {
-        //new game
+        std::system("CLS");
+        newGame();
     }
 }
 string getEast(char b[8][8], int r, int c) {
@@ -429,6 +441,29 @@ string getWest(char b[8][8], int r, int c) {
     }
     return ans;
 }
+void howToPlay() {
+    system("cls");
+    cout << "How to play:" << endl;
+    cout << "\nPieces move according to chess rules. To "<<endl;
+    cout << "make a move: enter 4 digits between 0 and 7 "<<endl;
+    cout << "where the first digit is a piece's row, the "<<endl;
+    cout << "second digit is the piece's column and the "<<endl; 
+    cout << "third and fourth digits are the row and " << endl;
+    cout << "column of the destination of your move."<<endl;
+
+    cout << "\n\nYour move must be a legal chess move " << endl;
+    cout << "otherwise the message \"invalid move\" " << endl;
+    cout << "will appear and you'll be prompted to " << endl;
+    cout << "choose another move." << endl;
+    char x;
+    cout << "\n\nIf you wish to resign make the move \"R\"." << endl;
+    cout << "\n\nEnter b to go back to menu: ";
+    cin >> x;
+    system("cls");
+    menu();
+
+
+}
 void initialBoard(char b[8][8]) {
     b[0][0] = b[0][7] = 'R';
     b[0][1] = b[0][6] = 'N';
@@ -448,7 +483,8 @@ void initialBoard(char b[8][8]) {
         for (int j = 0; j < 8; ++j) { b[i][j] = '.'; }
     }
 }
-bool isCheckmate(char b[8][8], bool turn) {
+bool isCheckmate(char b[8][8], bool turn, int wkr, int wkc, int bkr, int bkc) {
+    //wkr- white king row, bkr-black king row etc...
     /* if king is in check and has no legal moves
        find pieces attacking the king if there's 2 or
        more return true isCheckmate
@@ -456,22 +492,58 @@ bool isCheckmate(char b[8][8], bool turn) {
        see if there's a legal move that captures it
        if not return true else return false
     */
-    // if white's turn else black's turn
-    //if (turn) {
-    //    if (!whiteKingIsInCheck) { return false; }
-    //}
-    //else {
-    //    if (!blackKingIsInCheck) { return false; }    
-    //}
+
+    // check if white(black) is in check on white's(black's) turn
+    // then check to see if the king has any legal moves
+    // then try capture checking piece with every piece
+    if (turn) {
+        if (!whiteKingIsInCheck(b, wkr, wkc)) { 
+            return false; 
+        }  
+    }
+    else {
+        if (!blackKingIsInCheck(b, bkr, bkc)) {
+            return false;
+        }
+    
+    }
     return false;
 }
-bool isStalemate(char b[8][8], bool turn) {
+bool isDrawByLackOfMaterial(char b[8][8]) {
+    // loop through whole board and store pieces in string
+    string pieces{};
+    for (int i = 0; i < 8; ++i) {
+        for (int j = 0; j < 8; ++j) {
+            if (b[i][j] != '.') {
+                pieces += b[i][j];
+            }
+        }
+    }
+
+    if (pieces == "kK" || pieces == "Kk") {
+        return true;
+    }
+
+    return false;
+}
+bool isStalemate(char b[8][8], bool turn, int wkr, int wkc, int bkr, int bkc) {
+    //wkr- white king row, bkr-black king row etc...
     /* if in check return false
     if king has no legal moves
     loop through all pieces of that
     colour. once a move is found return false
     do this for white turn and black turn seperately
     */
+    if (turn) {
+        if (whiteKingIsInCheck(b, wkr, wkc)) {
+            return false;
+        }
+    }
+    else {
+        if (blackKingIsInCheck(b, bkr, bkc)) {
+            return false;
+        }
+    }
     return false;
 }
 bool makeEnPassentMove(char b[8][8], string m, string pm) {
@@ -546,8 +618,35 @@ void makeMove(char b[8][8], string s) {
     b[itemp3][itemp4] = temp;
     b[itemp1][itemp2] = '.';
 }
+void menu() {
+    cout << "Welcome to ChessApp menu" << endl;
+    cout << "-Enter n to play new game " << endl;
+    cout << "-Enter r to view the rules" << endl;
+    cout << "-Enter h to view how to play" << endl;
+    cout << "-Enter q to quit" << endl;
+
+    char x;
+    cin >> x;
+    if (x == 'n') {
+        system("cls");
+        newGame();
+    }
+    else if (x == 'r') {
+        system("cls");
+        rules();
+    }
+    else if (x == 'h') {
+        system("cls");
+        howToPlay();
+    }
+    else if (x == 'q') {
+        system("cls");
+        cout << "Thank you for playing! Good bye.";
+    }
+}
 void newGame() {
     bool gameover = false, checkmate = false, stalemate = false;
+    bool gameIsDraw = false, whiteWon=false, blackWon=false;
     bool whiteCanCastle = true, blackCanCastle = true;
     bool whiteTurn = true;
     char board[8][8];
@@ -564,10 +663,23 @@ void newGame() {
 
     //play game until gameover
     while (!gameover) {
+        cout << "Enter your move: ";
         cin >> s;
+        // Resign
+        if (s == "R"|| s=="r"){
+            whiteTurn ? cout << "White resigned. " << endl : cout << "Black resigned. " << endl;
+            whiteTurn ? blackWon = true : whiteWon = true;
+            break;
+        }
         while (!validString(s)) {
             cout << "invalid move, try another: ";
             cin >> s;
+        }
+        // Resign
+        if (s == "R" || s == "r") {
+            whiteTurn ? cout << "White resigned. " << endl : cout << "Black resigned. " << endl;
+            whiteTurn ? blackWon = true : whiteWon = true;
+            break;
         }
         if (makeEnPassentMove(board, s, previousMove)) {
             // en passant move was made 
@@ -664,18 +776,21 @@ void newGame() {
         else {
             cout << "invalid move, try another: ";
         }
-        // check for checkmate or stalemate
-        if (isStalemate(board, whiteTurn)) {
+        // check for checkmate or stalemate or draw
+        if (isStalemate(board, whiteTurn,whiteKingRow,whiteKingCol,blackKingRow,blackKingCol)) {
             stalemate = true;
         }
-        else if (isCheckmate(board, whiteTurn)) {
+        else if (isDrawByLackOfMaterial(board)) {
+            gameIsDraw = true;      
+        }
+        else if (isCheckmate(board, whiteTurn,whiteKingRow,whiteKingCol,blackKingRow,blackKingCol)) {
             checkmate = true;
         }
-        if (checkmate || stalemate) {
+        if (checkmate || stalemate|| gameIsDraw) {
             gameover = true;
         }
     }
-    gameResult();
+    gameResult(whiteWon,blackWon,gameIsDraw);
 
 }
 char pawnPromotion(char b[8][8], bool turn) {
@@ -720,6 +835,24 @@ void printBoard(char b[8][8],bool turn) {
     }
     cout << "  -----------------------"<<endl;
     //cout << "  A  B  C  D  E  F  G  H " << endl;
+}
+void rules() {
+    system("cls");
+    cout << "Welcome to ChessApp's rules section!" << endl;
+    cout << "\n All normal chess rules apply including:" << endl;
+    cout << "- Castling" << endl;
+    cout << "- En Passant" << endl;
+    cout << "- Pawn promotion" << endl;
+    cout << "- Draw by insufficient material(INCOMPLETE)" << endl;
+    cout << "- Stalemate" << endl;
+    cout << "- Check & Checkmate" << endl;
+    cout << "- Draw by threefold repetition(TODO)" << endl;
+
+    char x;
+    cout << "\nEnter b to go back to menu";
+    cin >> x;
+    system("cls");
+    menu();
 }
 bool stillInCheck(char b[8][8], string str) {
     //copy board and make move on the copy board
@@ -785,13 +918,13 @@ bool validMove(char b[8][8], string s, bool turn) {
     switch (temp) {
     case 'p': {
         if (row1 == row2 + 1 && col1 == col2 && temp2 == '.') { return true; }
-        if (row1 == row2 + 2 && row1 == 6 && col1 == col2 && temp2 == '.' && b[row2 + 1][col1] == '.') { return true; }
+        if (row2==4  && row1 == 6 && col1 == col2 && temp2 == '.' && b[row2 + 1][col1] == '.') { return true; }
         if (row1 == row2 + 1 && col1 == col2 + 1 && isupper(temp2)) { return true; }
         if (row1 == row2 + 1 && col1 == col2 - 1 && isupper(temp2)) { return true; }
         return false; }
     case 'P': {
         if (row2 == row1 + 1 && col1 == col2 && temp2 == '.') { return true; }
-        if (row2 == row1 + 2 && row1 == 1 && col1 == col2 && temp2 == '.' && b[2][col1] == '.') { return true; }
+        if (row2 == 3 && row1 == 1 && col1 == col2 && temp2 == '.' && b[2][col1] == '.') { return true; }
         if (row2 == row1 + 1 && col1 == col2 + 1 && islower(temp2)) { return true; }
         if (row2 == row1 + 1 && col1 == col2 - 1 && islower(temp2)) { return true; }
         return false;
@@ -844,7 +977,6 @@ bool validMove(char b[8][8], string s, bool turn) {
             diag = getNorthWest(b, row1, col1);
         }
 
-
         // find index of first non '.'
 
         // only search non empty strings
@@ -896,7 +1028,6 @@ bool validMove(char b[8][8], string s, bool turn) {
         else if (row2 < row1 && col2 < col1) {
             diag = getNorthWest(b, row1, col1);
         }
-
 
         // find index of first non '.'
 
@@ -1004,7 +1135,6 @@ bool validMove(char b[8][8], string s, bool turn) {
             dir = getNorth(b, row1, col1);
         }
 
-
         // find index of first non '.'
 
         // only search non empty strings
@@ -1037,7 +1167,6 @@ bool validMove(char b[8][8], string s, bool turn) {
         if (dif1 != 0 && dif2 != 0 && dif1 != dif2) {
             return false;
         }
-
 
         // find which direction the move is heading
         string dir{};
@@ -1168,8 +1297,6 @@ bool validMove(char b[8][8], string s, bool turn) {
         // if reach here move is invalid
         return false;
 
-
-
     }
     case 'k': {
         if (abs(row1 - row2) <= 1 && abs(col1 - col2) <= 1 && (temp2 == '.' || isupper(temp2))) { return true; }
@@ -1185,11 +1312,16 @@ bool validMove(char b[8][8], string s, bool turn) {
     return true;
 }
 bool validString(string s) {
+    // Resign
+    if (s == "R" || s == "r") {
+        return true;
+    }
     if (s.length() != 4) { return false; }
     if (!isdigit(s[0])) { return false; }
     if (!isdigit(s[1])) { return false; }
     if (!isdigit(s[2])) { return false; }
     if (!isdigit(s[3])) { return false; }
+    if (s[0] == '8' || s[1] == '8' || s[2] == '8' || s[3] == '8') { return false; }
     if (s[0] == '9' || s[1] == '9' || s[2] == '9' || s[3] == '9') { return false; }
     if (s[0] == s[2] && s[1] == s[3]) { return false; } //can't move to self
     return true;
@@ -1390,14 +1522,14 @@ bool whiteKingIsInCheck(char b[8][8], int r, int c) {
 };
 
 /*
-CODE REVIEW
-
-add a resign move
+To do list
 
 define CHECKMATE n stalemate
-// include king pos in parameters
 
-after game save/new/quit
+define draw by lack of material
 
 
-*///code review
+save game feature
+
+
+*/
