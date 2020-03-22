@@ -15,6 +15,8 @@ void addGameToSavedGames(vector<string>);
 void blackCastle(char[8][8], bool, string);
 bool blackCastleMoveIsValid(char[8][8], bool, string);
 bool blackKingIsInCheck(char[8][8], int, int);
+bool blackKingIsInCheckmate(char[8][8], int, int);
+string convertString(string);
 bool enPassantAttempt(char[8][8], string, string);
 vector<int> findBlackKing(char[8][8]);
 vector<int> findWhiteKing(char[8][8]);
@@ -51,6 +53,7 @@ bool validString(string);
 void whiteCastle(char[8][8], bool, string);
 bool whiteCastleMoveIsValid(char[8][8], bool, string);
 bool whiteKingIsInCheck(char[8][8], int, int);
+bool whiteKingIsInCheckmate(char[8][8], int, int);
 
 int main(){
     menu();
@@ -254,6 +257,22 @@ bool blackKingIsInCheck(char b[8][8], int r, int c) {
 
     return false;
 };
+bool blackKingIsInCheckmate(char b[8][8], int bkr, int bkc) {
+    return false;
+}
+string convertString(string t) {
+    // convert string 6444 to e4e2 etc
+    if (t == "r" || t == "R") {
+        return t;
+    }
+    if(t.size()!=4){
+        //return invalid move
+        return "9999";
+    }
+    string s{};
+    return s;
+
+}
 bool enPassantAttempt(char b[8][8], string m, string pm) {
     /*  returns true if an attempt was made to move a pawn
         diagonally forward onto an empty square from row 3 or 4
@@ -391,6 +410,8 @@ void gameReplay(vector<string> m) {
         cout << "Game replay!" << endl;
         printBoard(b);  
     }
+    cout << "\nMoves:" << endl;
+    cout << m << endl;
 }
 void gameResult(bool ww, bool bw, bool draw, vector<string> m) {
     if (draw) {
@@ -403,7 +424,7 @@ void gameResult(bool ww, bool bw, bool draw, vector<string> m) {
         cout << "Game over! Black won." << endl;
     }
     char x;
-    cout << "Enter 's' to save game, 'q' to quit,'r' to replay game or 'n' for new game: ";
+    cout << "Enter 's' to save game, 'q' to quit, 'r' to replay game or 'n' for new game: ";
     cin >> x;
     if (x == 'r') {
         system("cls");
@@ -597,12 +618,18 @@ bool isCheckmate(char b[8][8], bool turn, int wkr, int wkc, int bkr, int bkc) {
         if (!whiteKingIsInCheck(b, wkr, wkc)) { 
             return false; 
         }  
+        if (whiteKingIsInCheckmate(b, wkr, wkc)) {
+            return true;
+        }
     }
     else {
         if (!blackKingIsInCheck(b, bkr, bkc)) {
             return false;
         }
-    
+        if (blackKingIsInCheckmate(b, bkr, bkc)) {
+            return true;
+        }
+
     }
     return false;
 }
@@ -1672,17 +1699,23 @@ bool whiteKingIsInCheck(char b[8][8], int r, int c) {
 
     return false;
 };
+bool whiteKingIsInCheckmate(char b[8][8], int wkr, int wkc) {
+    return false;
+}
 
 /*
 To do list
 
 define CHECKMATE n stalemate
+use whiteking n blackking in checkmate functions
 
 threefold repetition
 hashmap of 2d arrays mapping to ints
 if it maps to 3 return true
 
 save game feature
+
+convert string function to turn e2e4 into 6444
 
 */
 
