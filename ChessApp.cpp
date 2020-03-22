@@ -1,19 +1,25 @@
+#include <algorithm>
+#include <cstddef> 
 #include <iostream>
 #include <string>
-#include <algorithm>
 #include <vector>
-#include <cstddef>    
+#include <windows.h>
 using namespace std;
 
-//function prototypes in alphabetical order
+// overloaded operator prototypes
+template < class T >
+inline std::ostream& operator << (std::ostream&, const std::vector<T>&);
 
+//function prototypes in alphabetical order
+void addGameToSavedGames(vector<string>);
 void blackCastle(char[8][8], bool, string);
 bool blackCastleMoveIsValid(char[8][8], bool, string);
 bool blackKingIsInCheck(char[8][8], int, int);
 bool enPassantAttempt(char[8][8], string, string);
 vector<int> findBlackKing(char[8][8]);
 vector<int> findWhiteKing(char[8][8]);
-void gameResult(bool, bool, bool);
+void gameReplay(vector<string>);
+void gameResult(bool, bool, bool, vector<string>);
 string getEast(char[8][8], int, int);
 string getFile(char[8][8], int);
 string getNorth(char[8][8], int, int);
@@ -35,6 +41,7 @@ void menu();
 void newGame();
 char pawnPromotion(char[8][8], bool);
 bool pawnPromotionNeeded(char[8][8]);
+void printBoard(char[8][8]);
 void printBoard(char[8][8], bool);
 void rules();
 void savedGames();
@@ -50,6 +57,10 @@ int main(){
 }
 
 //function definitions in alphabetical order
+void addGameToSavedGames(vector<string> m) {
+    // 
+
+}
 void blackCastle(char b[8][8], bool bcc, string move) {
     if (move == "0406") {
         b[0][6] = 'K';
@@ -305,7 +316,83 @@ vector<int> findWhiteKing(char b[8][8]) {
     }
     return { -1,-1 };
 };
-void gameResult(bool ww, bool bw, bool draw) {
+void gameReplay(vector<string> m) {
+    // input moves vector to watch the game being played with
+    // one move made per second
+    int row1{}, row2{}, col1{}, col2{};
+    char temp, temp2;
+    cout << "Game replay!" << endl;
+    char b[8][8];           //board
+    initialBoard(b);
+    printBoard(b);
+    // for each move in m, make the move then wait 1500ms
+    // then print board
+    for (auto move : m) {
+        if (move != "r" && move != "R") {
+            row1 = (int)move[0] - 48;
+            col1 = (int)move[1] - 48;
+            row2 = (int)move[2] - 48;
+            col2 = (int)move[3] - 48;
+            temp = b[row1][col1];              //initial position
+            temp2 = b[row2][col2];             //final position
+
+            // special cases 
+            // en passant
+            if (temp == 'p' && col2!=col1 && temp2 == '.') {
+                b[row1][col1] = '.';
+                b[row2][col2] = 'p';
+                b[3][col2] = '.';
+            }
+            else if (temp == 'P' && col2 != col1 && temp2 == '.') {
+                b[row1][col1] = '.';
+                b[row2][col2] = 'P';
+                b[5][col2] = '.';
+            }
+            // pawn promotion
+            else if ((temp == 'p' && row2 == 0) || (temp == 'P' && row2 == 7)) {
+                b[row1][col1] = '.';
+                islower(temp) ? b[row2][col2] = 'q' : b[row2][col2] = 'Q';
+                // this needs to be fixed since not all pawn promotions promote to queen
+            }
+            // castling 
+            else if (temp == 'k' && abs(col2 - col1) > 1) {
+                b[7][4] = '.';
+                b[7][col2] = 'k';
+                b[7][(4 + col2) / 2] = 'r';
+                if (col2 == 2) {
+                    b[7][0] = '.';
+                }
+                else {
+                    b[7][7] = '.';
+                }
+            }
+            else if (temp == 'K' && abs(col2 - col1) > 1) {
+                b[0][4] = '.';
+                b[0][col2] = 'K';
+                b[0][(4 + col2) / 2] = 'R';
+                if (col2 == 2) {
+                    b[0][0] = '.';
+                }
+                else {
+                    b[0][7] = '.';
+                }
+            }
+            //makemove
+            else {
+                b[row2][col2] = temp;
+                b[row1][col1] = '.';
+            }
+        }
+        else {
+            break;      
+        }
+        Sleep(1500);
+        system("cls");
+        cout << "Game replay!" << endl;
+        printBoard(b);  
+    }
+}
+void gameResult(bool ww, bool bw, bool draw, vector<string> m) {
     if (draw) {
         cout << "Game over! The game was a draw." << endl;
     }
@@ -316,10 +403,17 @@ void gameResult(bool ww, bool bw, bool draw) {
         cout << "Game over! Black won." << endl;
     }
     char x;
-    cout << "Enter 's' to save game, 'q' to quit or 'n' for new game: ";
+    cout << "Enter 's' to save game, 'q' to quit,'r' to replay game or 'n' for new game: ";
     cin >> x;
+    if (x == 'r') {
+        system("cls");
+        gameReplay(m);
+        cout << "Enter q to quit to menu, s to save game or n for new game: ";
+        cin >> x;
+    }
     if (x == 's') {
         //save game
+        system("cls");
         cout << "Game saved!" << endl;
         cout << "Enter q to quit to menu, or n for new game: ";
         cin >> x;
@@ -332,6 +426,7 @@ void gameResult(bool ww, bool bw, bool draw) {
         std::system("CLS");
         newGame();
     }
+    
 }
 string getEast(char b[8][8], int r, int c) {
     // Starting from (r,c) return squares in the direction d
@@ -672,6 +767,8 @@ void newGame() {
     int blackKingRow = 0;         // throughout the game
     int blackKingCol = 4;
 
+    vector<string> moves{};       // after making a move store the move string here
+
     // initialise board and display it
     initialBoard(board);
     printBoard(board, whiteTurn);
@@ -686,6 +783,9 @@ void newGame() {
         if (s == "R"|| s=="r"){
             whiteTurn ? cout << "White resigned. " << endl : cout << "Black resigned. " << endl;
             whiteTurn ? blackWon = true : whiteWon = true;
+            // add move to moves
+            moves.push_back(s);
+            //gameover
             break;
         }
         while (!validString(s)) {
@@ -696,6 +796,9 @@ void newGame() {
         if (s == "R" || s == "r") {
             whiteTurn ? cout << "White resigned. " << endl : cout << "Black resigned. " << endl;
             whiteTurn ? blackWon = true : whiteWon = true;
+            // add move to moves
+            moves.push_back(s);
+            // gameover
             break;
         }
         if (makeEnPassentMove(board, s, previousMove)) {
@@ -712,6 +815,8 @@ void newGame() {
                 blackKingIsInCheck(board, blackKingRow, blackKingCol)) {
                 cout << "\nCheck!";
             }
+            // add move to moves
+            moves.push_back(s);
         }
         else if (stillInCheck(board, s)) {
             cout << "invalid move, try another: ";
@@ -730,6 +835,8 @@ void newGame() {
                 //update king position
                 int whiteKingRow = 7;
                 board[7][6] == 'k' ? whiteKingCol = 6 : whiteKingCol = 2;
+                // add move to moves
+                moves.push_back(s);
                 //clear screen and display board again
                 std::system("CLS");
                 printBoard(board, whiteTurn);
@@ -749,6 +856,8 @@ void newGame() {
                 //update king position
                 int blackKingRow = 0;
                 board[0][6] == 'K' ? blackKingCol = 6 : blackKingCol = 2;
+                // add move to moves
+                moves.push_back(s);
                 //clear screen and display board again
                 std::system("CLS");
                 printBoard(board, whiteTurn);
@@ -781,6 +890,8 @@ void newGame() {
             whiteTurn = !whiteTurn;
             //update previous move
             previousMove = s;
+            // add move to moves
+            moves.push_back(s);
             //clear screen and display board again
             std::system("CLS");
             printBoard(board, whiteTurn);
@@ -807,7 +918,10 @@ void newGame() {
             gameover = true;
         }
     }
-    gameResult(whiteWon,blackWon,gameIsDraw);
+
+    cout << endl;
+
+    gameResult(whiteWon,blackWon,gameIsDraw,moves);
 
 }
 char pawnPromotion(char b[8][8], bool turn) {
@@ -838,6 +952,18 @@ bool pawnPromotionNeeded(char b[8][8]) {
         if (b[0][i] == 'p') { return true; }
     }
     return false;
+}
+void printBoard(char b[8][8]) {
+    cout << "  -----------------------" << endl;
+    for (int i = 0; i < 8; ++i) {
+        cout << 8-i;
+        for (int j = 0; j < 8; ++j) {
+            cout << "|" << b[i][j] << " ";
+        }
+        cout << "|" << endl;
+    }
+    cout << "  -----------------------" << endl;
+    cout << "  A  B  C  D  E  F  G  H " << endl;
 }
 void printBoard(char b[8][8],bool turn) {
     turn ? cout << " White's turn (lower case)"<<endl : cout << " Black's turn (upper case)"<<endl;
@@ -1559,3 +1685,32 @@ if it maps to 3 return true
 save game feature
 
 */
+
+// overloaded operator definitions
+template < class T >
+inline std::ostream& operator << (std::ostream& os, const std::vector<T>& v)
+{
+    // prints vectors in a nice format to display moves
+
+    int n = 1;
+    os << "1. [";
+    for (auto ii=v.begin(); ii != v.end(); ++ii)
+    {
+        if (n > 1) {
+            os << n << ". [";
+        }
+        os << *ii;
+        ++ii;
+
+        if (ii != v.end()) {
+            os << " " << *ii << "]" << endl;
+            ++n;
+        }
+        else {
+            os << " ]" << endl;
+            --ii;
+        }
+    }
+
+    return os;
+}
