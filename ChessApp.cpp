@@ -62,8 +62,12 @@ int main(){
 
 //function definitions in alphabetical order
 void addGameToSavedGames(vector<string> m) {
-    // 
-
+    ofstream outfile;
+    outfile.open("savedgames.txt", std::ios_base::app);     //append
+    outfile << m << endl;
+    outfile.close();
+    system("cls");
+    cout << "Game saved!" << endl;
 }
 void blackCastle(char b[8][8], bool bcc, string move) {
     if (move == "0406") {
@@ -338,6 +342,7 @@ void gameReplay(vector<string> m) {
     // one move made per second
     int row1{}, row2{}, col1{}, col2{};
     char temp, temp2;
+    system("cls");
     cout << "Game replay!" << endl;
     char b[8][8];           //board
     initialBoard(b);
@@ -426,19 +431,12 @@ void gameResult(bool ww, bool bw, bool draw, vector<string> m) {
     cout << "Enter 's' to save game, 'q' to quit, 'r' to replay game or 'n' for new game: ";
     cin >> x;
     if (x == 'r') {
-        system("cls");
         gameReplay(m);
         cout << "Enter q to quit to menu, s to save game or n for new game: ";
         cin >> x;
     }
     if (x == 's') {
-        //save game
-        ofstream outfile;
-        outfile.open("savedgames.txt", std::ios_base::app);     //append
-        outfile << m<<endl;
-        outfile.close();
-        system("cls");
-        cout << "Game saved!" << endl;
+        addGameToSavedGames(m);
         cout << "Enter q to quit to menu, or n for new game: ";
         cin >> x;
     }
@@ -449,8 +447,7 @@ void gameResult(bool ww, bool bw, bool draw, vector<string> m) {
     else if (x == 'n') {
         std::system("CLS");
         newGame();
-    }
-    
+    }  
 }
 string getEast(char b[8][8], int r, int c) {
     // Starting from (r,c) return squares in the direction d
@@ -1760,7 +1757,8 @@ inline std::ostream& operator << (std::ostream& os, const std::vector<T>& v)
 To do list
 
 num legal moves function!!!!!!!!!!!!!!!!
-
+TURN THIS INTO A VEC OF STRINGS FOR LEGAL MOVES
+then call size of vec 
 
 threefold repetition
 hashmap of 2d arrays mapping to ints
