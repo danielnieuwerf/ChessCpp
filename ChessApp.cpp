@@ -3,6 +3,8 @@
 #include <fstream>
 #include <iostream>
 #include <string>
+#include <unordered_map>
+#include <unordered_set>
 #include <vector>
 #include <windows.h>
 using namespace std;
@@ -16,6 +18,7 @@ void addGameToSavedGames(vector<string>);
 void blackCastle(char[8][8], bool, string);
 bool blackCastleMoveIsValid(char[8][8], bool, string);
 bool blackKingIsInCheck(char[8][8], int, int);
+string convertBoardToString(char[8][8]);
 string convertString(string);
 bool enPassantAttempt(char[8][8], string, string);
 vector<int> findBlackKing(char[8][8]);
@@ -36,6 +39,7 @@ void howToPlay();
 void initialBoard(char[8][8]);
 bool isCheckmate(char[8][8], bool, int, int, int, int,bool,bool);
 bool isDrawByLackOfMaterial(char[8][8]);
+bool isDrawByThreefoldRepetition(unordered_map<string, int>);
 bool isStalemate(char[8][8], bool, int, int, int, int,bool,bool);
 bool makeEnPassentMove(char[8][8], string, string);
 void makeMove(char[8][8], string);
@@ -262,6 +266,15 @@ bool blackKingIsInCheck(char b[8][8], int r, int c) {
 
     return false;
 };
+string convertBoardToString(char b[8][8]) {
+    string str{};
+    for (int i = 0; i < 8; ++i) {
+        for (int j = 0; j < 8; ++j) {
+            str += b[i][j];
+        }
+    }
+    return str;
+}
 string convertString(string t) {
     // convert string 6444 to e4e2 etc
     if (t == "r" || t == "R") {
@@ -641,6 +654,14 @@ bool isDrawByLackOfMaterial(char b[8][8]) {
 
     return false;
 }
+bool isDrawByThreefoldRepetition(unordered_map<string, int> mp) {
+    for (auto x : mp) {
+        if (x.second == 3) {
+            return true;
+        }
+    }
+    return false;
+}
 bool isStalemate(char b[8][8], bool turn, int wkr, int wkc, int bkr, int bkc, bool wcc, bool bcc) {
     //wcc-white can catle, bcc similarly for black
     //wkr- white king row, wkc-white king column etc...
@@ -769,6 +790,7 @@ void newGame() {
     int blackKingCol = 4;
 
     vector<string> moves{};       // after making a move store the move string here
+    unordered_map<string, int> boardStates{};//check for threefold repetition
 
     // initialise board and display it
     initialBoard(board);
@@ -808,6 +830,9 @@ void newGame() {
             whiteTurn = !whiteTurn;
             //update previous move
             previousMove = s;
+            //update boardStates
+            string boardString = convertBoardToString(board);
+            boardStates[boardString]++;
             //clear screen and display board again
             std::system("CLS");
             printBoard(board, whiteTurn);
@@ -838,6 +863,9 @@ void newGame() {
                 board[7][6] == 'k' ? whiteKingCol = 6 : whiteKingCol = 2;
                 // add move to moves
                 moves.push_back(s);
+                //update boardStates
+                string boardString = convertBoardToString(board);
+                boardStates[boardString]++;
                 //clear screen and display board again
                 std::system("CLS");
                 printBoard(board, whiteTurn);
@@ -859,6 +887,9 @@ void newGame() {
                 board[0][6] == 'K' ? blackKingCol = 6 : blackKingCol = 2;
                 // add move to moves
                 moves.push_back(s);
+                //update boardStates
+                string boardString = convertBoardToString(board);
+                boardStates[boardString]++;
                 //clear screen and display board again
                 std::system("CLS");
                 printBoard(board, whiteTurn);
@@ -893,6 +924,9 @@ void newGame() {
             previousMove = s;
             // add move to moves
             moves.push_back(s);
+            //update boardStates
+            string boardString = convertBoardToString(board);
+            boardStates[boardString]++;
             //clear screen and display board again
             std::system("CLS");
             printBoard(board, whiteTurn);
@@ -911,6 +945,9 @@ void newGame() {
         }
         else if (isDrawByLackOfMaterial(board)) {
             gameIsDraw = true;      
+        }
+        else if (isDrawByThreefoldRepetition(boardStates)) {
+            gameIsDraw = true;
         }
         else if (isCheckmate(board, whiteTurn,whiteKingRow,whiteKingCol,blackKingRow,blackKingCol, whiteCanCastle, blackCanCastle)) {
             checkmate = true;
@@ -1029,8 +1066,7 @@ void rules() {
     cout << "- Draw by insufficient material" << endl;
     cout << "- Stalemate" << endl;
     cout << "- Check & Checkmate" << endl;
-    cout << "- Draw by threefold repetition(TODO)" << endl;
-
+    cout << "- Draw by threefold repetition" << endl;
 
     cout << "\nEnter b to go back to menu: ";
     string s{};
@@ -1567,6 +1603,7 @@ bool whiteCastleMoveIsValid(char b[8][8], bool wcc, string move) {
                 copy[i][j] = b[i][j];
             }
         }
+        
         makeMove(copy, "7475");
         if (whiteKingIsInCheck(copy, 7, 5)) { return false; }
     }
@@ -1752,6 +1789,18 @@ inline std::ostream& operator << (std::ostream& os, const std::vector<T>& v)
 
     return os;
 }
+//bool const char[8][8]&::operator== (const char[8][8] &b, const char[8][8] &c)
+//{
+//    for (int i = 0; i < 8; ++i) {
+//        for (int j = 0; j < 8; ++j) {
+//            if (b[i][j] != c[i][j]) {
+//                return false;
+//            }
+//        }
+//    }
+//
+//    return true;
+//}
 
 /*
 To do list
@@ -1759,10 +1808,6 @@ To do list
 num legal moves function!!!!!!!!!!!!!!!!
 TURN THIS INTO A VEC OF STRINGS FOR LEGAL MOVES
 then call size of vec 
-
-threefold repetition
-hashmap of 2d arrays mapping to ints
-if it maps to 3 return true
 
 
 convert string function to turn e2e4 into 6444
