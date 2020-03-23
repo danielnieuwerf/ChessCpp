@@ -6,4 +6,4 @@ Skills practiced during this project:
 - Operator and function overloading
 - String methods
 - Pointers
-- Custom Hash maps
+- Hash maps
