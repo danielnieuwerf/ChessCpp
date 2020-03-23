@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <cstddef> 
+#include <fstream>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -15,7 +16,6 @@ void addGameToSavedGames(vector<string>);
 void blackCastle(char[8][8], bool, string);
 bool blackCastleMoveIsValid(char[8][8], bool, string);
 bool blackKingIsInCheck(char[8][8], int, int);
-bool blackKingIsInCheckmate(char[8][8], int, int);
 string convertString(string);
 bool enPassantAttempt(char[8][8], string, string);
 vector<int> findBlackKing(char[8][8]);
@@ -34,13 +34,14 @@ string getSouthWest(char[8][8], int, int);
 string getWest(char[8][8], int, int);
 void howToPlay();
 void initialBoard(char[8][8]);
-bool isCheckmate(char[8][8], bool, int, int, int, int);
+bool isCheckmate(char[8][8], bool, int, int, int, int,bool,bool);
 bool isDrawByLackOfMaterial(char[8][8]);
-bool isStalemate(char[8][8], bool, int, int, int, int);
+bool isStalemate(char[8][8], bool, int, int, int, int,bool,bool);
 bool makeEnPassentMove(char[8][8], string, string);
 void makeMove(char[8][8], string);
 void menu();
 void newGame();
+int numLegalMoves(char[8][8], bool, bool, bool);
 char pawnPromotion(char[8][8], bool);
 bool pawnPromotionNeeded(char[8][8]);
 void printBoard(char[8][8]);
@@ -53,7 +54,7 @@ bool validString(string);
 void whiteCastle(char[8][8], bool, string);
 bool whiteCastleMoveIsValid(char[8][8], bool, string);
 bool whiteKingIsInCheck(char[8][8], int, int);
-bool whiteKingIsInCheckmate(char[8][8], int, int);
+
 
 int main(){
     menu();
@@ -257,9 +258,6 @@ bool blackKingIsInCheck(char b[8][8], int r, int c) {
 
     return false;
 };
-bool blackKingIsInCheckmate(char b[8][8], int bkr, int bkc) {
-    return false;
-}
 string convertString(string t) {
     // convert string 6444 to e4e2 etc
     if (t == "r" || t == "R") {
@@ -414,6 +412,7 @@ void gameReplay(vector<string> m) {
     cout << m << endl;
 }
 void gameResult(bool ww, bool bw, bool draw, vector<string> m) {
+    cout << m;
     if (draw) {
         cout << "Game over! The game was a draw." << endl;
     }
@@ -434,6 +433,10 @@ void gameResult(bool ww, bool bw, bool draw, vector<string> m) {
     }
     if (x == 's') {
         //save game
+        ofstream outfile;
+        outfile.open("savedgames.txt", std::ios_base::app);     //append
+        outfile << m<<endl;
+        outfile.close();
         system("cls");
         cout << "Game saved!" << endl;
         cout << "Enter q to quit to menu, or n for new game: ";
@@ -601,35 +604,16 @@ void initialBoard(char b[8][8]) {
         for (int j = 0; j < 8; ++j) { b[i][j] = '.'; }
     }
 }
-bool isCheckmate(char b[8][8], bool turn, int wkr, int wkc, int bkr, int bkc) {
-    //wkr- white king row, bkr-black king row etc...
-    /* if king is in check and has no legal moves
-       find pieces attacking the king if there's 2 or
-       more return true isCheckmate
-       if there is one piece attacking the king
-       see if there's a legal move that captures it
-       if not return true else return false
-    */
-
-    // check if white(black) is in check on white's(black's) turn
-    // then check to see if the king has any legal moves
-    // then try capture checking piece with every piece
-    if (turn) {
-        if (!whiteKingIsInCheck(b, wkr, wkc)) { 
-            return false; 
-        }  
-        if (whiteKingIsInCheckmate(b, wkr, wkc)) {
-            return true;
-        }
+bool isCheckmate(char b[8][8], bool turn, int wkr, int wkc, int bkr, int bkc, bool wcc, bool bcc) {
+    //wcc-white can catle, bcc similarly for black
+    //wkr- white king row, wkc-white king column etc...
+    if (turn && whiteKingIsInCheck(b,wkr,wkc)&& numLegalMoves(b,true,wcc,bcc)==0) { 
+        return true;
     }
     else {
-        if (!blackKingIsInCheck(b, bkr, bkc)) {
-            return false;
-        }
-        if (blackKingIsInCheckmate(b, bkr, bkc)) {
+        if (!turn && blackKingIsInCheck(b, bkr,bkc) && numLegalMoves(b,false,wcc,bcc)==0) {
             return true;
         }
-
     }
     return false;
 }
@@ -660,22 +644,15 @@ bool isDrawByLackOfMaterial(char b[8][8]) {
 
     return false;
 }
-bool isStalemate(char b[8][8], bool turn, int wkr, int wkc, int bkr, int bkc) {
-    //wkr- white king row, bkr-black king row etc...
-    /* if in check return false
-    if king has no legal moves
-    loop through all pieces of that
-    colour. once a move is found return false
-    do this for white turn and black turn seperately
-    */
-    if (turn) {
-        if (whiteKingIsInCheck(b, wkr, wkc)) {
-            return false;
-        }
+bool isStalemate(char b[8][8], bool turn, int wkr, int wkc, int bkr, int bkc, bool wcc, bool bcc) {
+    //wcc-white can catle, bcc similarly for black
+    //wkr- white king row, wkc-white king column etc...
+    if (turn && !whiteKingIsInCheck(b, wkr, wkc) && numLegalMoves(b, true,wcc,bcc) == 0) {
+        return true;
     }
     else {
-        if (blackKingIsInCheck(b, bkr, bkc)) {
-            return false;
+        if (!turn && !blackKingIsInCheck(b, bkr, bkc) && numLegalMoves(b, false,wcc,bcc) == 0) {
+            return true;
         }
     }
     return false;
@@ -932,13 +909,13 @@ void newGame() {
             cout << "invalid move, try another: ";
         }
         // check for checkmate or stalemate or draw
-        if (isStalemate(board, whiteTurn,whiteKingRow,whiteKingCol,blackKingRow,blackKingCol)) {
+        if (isStalemate(board, whiteTurn,whiteKingRow,whiteKingCol,blackKingRow,blackKingCol,whiteCanCastle,blackCanCastle)) {
             stalemate = true;
         }
         else if (isDrawByLackOfMaterial(board)) {
             gameIsDraw = true;      
         }
-        else if (isCheckmate(board, whiteTurn,whiteKingRow,whiteKingCol,blackKingRow,blackKingCol)) {
+        else if (isCheckmate(board, whiteTurn,whiteKingRow,whiteKingCol,blackKingRow,blackKingCol, whiteCanCastle, blackCanCastle)) {
             checkmate = true;
         }
         if (checkmate || stalemate|| gameIsDraw) {
@@ -950,6 +927,45 @@ void newGame() {
 
     gameResult(whiteWon,blackWon,gameIsDraw,moves);
 
+}
+int numLegalMoves(char b[8][8], bool turn, bool wcc, bool bcc) {
+    /*
+    For each piece of colour white/black depending
+    on turn, count the number of legal moves it can make
+    and return the sum of all these counts.
+    */
+
+    int num{};      //store the total count in num
+
+    // loop through the entire board looking for pieces of
+    // colour whose turn it is and count num moves
+
+    char copy[8][8];    //copy of board b
+    for (int i = 0; i < 8; ++i) {
+        for (int j = 0; j < 8; ++j) {
+            copy[i][j] = b[i][j];
+        }
+    }
+
+    if (turn) {
+        for (int i = 0; i < 8;++i) {
+            for (int j = 0; j < 8; ++j) {
+                if (islower(b[i][j])) {
+                    // if king
+                    // if pawn
+                    // if knight
+                    // if rook
+                    // if bishop
+                    // if queen
+                }
+            }
+        }
+    }
+    else {
+
+    }
+
+    return 1;
 }
 char pawnPromotion(char b[8][8], bool turn) {
     char p;
@@ -1009,7 +1025,7 @@ void printBoard(char b[8][8],bool turn) {
 void rules() {
     system("cls");
     cout << "Welcome to ChessApp's rules section!" << endl;
-    cout << "\n All normal chess rules apply including:" << endl;
+    cout << "\n Normal chess rules apply including:" << endl;
     cout << "- Castling" << endl;
     cout << "- En Passant" << endl;
     cout << "- Pawn promotion" << endl;
@@ -1026,7 +1042,18 @@ void rules() {
     menu();
 }
 void savedGames() {
-    cout << "No saved games" << endl;
+    std::ifstream file("savedgames.txt");
+    std::string str;
+    int count{};
+
+    while (std::getline(file, str)) {
+        cout << str << endl;
+        count++;
+    }
+    if (count == 0) {
+        cout << "No saved games." << endl;
+    }
+
     cout << "\nEnter b to go back to menu: " << endl;
     string s{};
     cin >> s;
@@ -1699,25 +1726,6 @@ bool whiteKingIsInCheck(char b[8][8], int r, int c) {
 
     return false;
 };
-bool whiteKingIsInCheckmate(char b[8][8], int wkr, int wkc) {
-    return false;
-}
-
-/*
-To do list
-
-define CHECKMATE n stalemate
-use whiteking n blackking in checkmate functions
-
-threefold repetition
-hashmap of 2d arrays mapping to ints
-if it maps to 3 return true
-
-save game feature
-
-convert string function to turn e2e4 into 6444
-
-*/
 
 // overloaded operator definitions
 template < class T >
@@ -1747,3 +1755,18 @@ inline std::ostream& operator << (std::ostream& os, const std::vector<T>& v)
 
     return os;
 }
+
+/*
+To do list
+
+num legal moves function!!!!!!!!!!!!!!!!
+
+
+threefold repetition
+hashmap of 2d arrays mapping to ints
+if it maps to 3 return true
+
+
+convert string function to turn e2e4 into 6444
+
+*/
