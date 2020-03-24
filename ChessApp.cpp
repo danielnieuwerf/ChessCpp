@@ -276,7 +276,7 @@ string convertBoardToString(char b[8][8]) {
     return str;
 }
 string convertString(string t) {
-    // convert string 6444 to e4e2 etc
+    // convert string e2e4 to 6444 etc
     if (t == "r" || t == "R") {
         return t;
     }
@@ -284,9 +284,95 @@ string convertString(string t) {
         //return invalid move
         return "9999";
     }
-    string s{};
-    return s;
+    // if we reach here t has length 4
+    if (!isalpha(t[0])) {
+        return "9999";
+    }
+    if (!isalpha(t[2])) {
+        return "9999";
+    }
+    if (!isdigit(t[1])) {
+        return "9999";
+    }
+    if (!isdigit(t[3])) {
+        return "9999";
+    }
+    t[0]=tolower(t[0]);
+    t[2]=tolower(t[2]);
+    // if we reach here t has form a0a0
+    // with a being a lower case letter and 0 a digit
+    if (t[1] == '0' || t[1] == '9') {
+        return false;
+    }
+    if (t[3] == '0' || t[3] == '9') {
+        return false;
+    }
+    if (t[0] > 'h' || t[2] > 'h') {
+        return false;
+    }
+    // if we reach here we have a valid move string
+    // such as e2e4 which should be 6444
+    string s="xxxx";
+    s[0] = '8' - (int)t[1]+48;
+    s[2] = '8' - (int)t[3]+48;
+    char temp = t[0];
+    char temp2 = t[2];
+    switch (temp) {
+    case 'a':
+        s[1] = '0';
+        break;
+    case 'b':
+        s[1] = '1';
+        break;
+    case 'c':
+        s[1] = '2';
+        break;
+    case 'd':
+        s[1] = '3';
+        break;
+    case 'e':
+        s[1] = '4';
+        break;
+    case 'f':
+        s[1] = '5';
+        break;
+    case 'g':
+        s[1] = '6';
+        break;
+    case 'h':
+        s[1] = '7';
+        break;
+    default: s[1] = '9';
+    }
+    switch (temp2) {
+    case 'a':
+        s[3] = '0';
+        break;
+    case 'b':
+        s[3] = '1';
+        break;
+    case 'c':
+        s[3] = '2';
+        break;
+    case 'd':
+        s[3] = '3';
+        break;
+    case 'e':
+        s[3] = '4';
+        break;
+    case 'f':
+        s[3] = '5';
+        break;
+    case 'g':
+        s[3] = '6';
+        break;
+    case 'h':
+        s[3] = '7';
+        break;
+    default: s[3] = '9';
+    }
 
+    return s;
 }
 bool enPassantAttempt(char b[8][8], string m, string pm) {
     /*  returns true if an attempt was made to move a pawn
@@ -575,17 +661,17 @@ void howToPlay() {
     system("cls");
     cout << "How to play:" << endl;
     cout << "\nPieces move according to chess rules. To "<<endl;
-    cout << "make a move: enter 4 digits between 0 and 7 "<<endl;
-    cout << "where the first digit is a piece's row, the "<<endl;
-    cout << "second digit is the piece's column and the "<<endl; 
-    cout << "third and fourth digits are the row and " << endl;
-    cout << "column of the destination of your move."<<endl;
+    cout << "make a move: enter 4 digits such as e2e4 "<<endl;
+    cout << "to move the piece at e2 to e4. The move e4"<<endl;
+    cout << "is invalid as the move must be 4 digits in"<<endl; 
+    cout << "length. The only exception to this is the move" << endl;
+    cout << "r, which is the move of resignation."<<endl;
 
     cout << "\n\nYour move must be a legal chess move " << endl;
     cout << "otherwise the message \"invalid move\" " << endl;
     cout << "will appear and you'll be prompted to " << endl;
     cout << "choose another move." << endl;
-    cout << "\n\nIf you wish to resign make the move \"R\"." << endl;
+
     cout << "\n\nEnter b to go back to menu: ";
 
     string s{};
@@ -796,12 +882,14 @@ void newGame() {
     initialBoard(board);
     printBoard(board, whiteTurn);
     string s{};                 // move inputs stored in string
-    string previousMove = "1111"; // stores previous move for en passant logic
+    string previousMove = "e1e2"; // stores previous move for en passant logic
 
     //play game until gameover
     while (!gameover) {
         cout << "Enter your move: ";
         cin >> s;
+        s = convertString(s);
+        cout << s;
         // Resign
         if (s == "R"|| s=="r"){
             whiteTurn ? cout << "White resigned. " << endl : cout << "Black resigned. " << endl;
@@ -814,6 +902,7 @@ void newGame() {
         while (!validString(s)) {
             cout << "invalid move, try another: ";
             cin >> s;
+            s = convertString(s);
         }
         // Resign
         if (s == "R" || s == "r") {
@@ -1044,17 +1133,17 @@ void printBoard(char b[8][8]) {
 }
 void printBoard(char b[8][8],bool turn) {
     turn ? cout << " White's turn (lower case)"<<endl : cout << " Black's turn (upper case)"<<endl;
-    cout << "  0  1  2  3  4  5  6  7 " << endl;
+    //cout << "  0  1  2  3  4  5  6  7 " << endl;
     cout << "  -----------------------" << endl;
     for (int i = 0; i < 8; ++i) {
-        cout << i;
+        cout << 8-i;
         for (int j = 0; j < 8; ++j) {
             cout<<"|"<<b[i][j]<<" ";
         }
         cout <<"|"<< endl;
     }
     cout << "  -----------------------"<<endl;
-    //cout << "  A  B  C  D  E  F  G  H " << endl;
+    cout << "  A  B  C  D  E  F  G  H " << endl;
 }
 void rules() {
     system("cls");
@@ -1551,18 +1640,36 @@ bool validMove(char b[8][8], string s, bool turn) {
     return true;
 }
 bool validString(string s) {
+    // string like "7655" 
     // Resign
     if (s == "R" || s == "r") {
         return true;
     }
-    if (s.length() != 4) { return false; }
-    if (!isdigit(s[0])) { return false; }
-    if (!isdigit(s[1])) { return false; }
-    if (!isdigit(s[2])) { return false; }
-    if (!isdigit(s[3])) { return false; }
-    if (s[0] == '8' || s[1] == '8' || s[2] == '8' || s[3] == '8') { return false; }
-    if (s[0] == '9' || s[1] == '9' || s[2] == '9' || s[3] == '9') { return false; }
-    if (s[0] == s[2] && s[1] == s[3]) { return false; } //can't move to self
+    if (s.length() != 4) { 
+        return false;
+    }
+    if (!isdigit(s[0])) { 
+        return false;
+    }
+    if (!isdigit(s[1])) { 
+        return false;
+    }
+    if (!isdigit(s[2])) {
+        return false;
+    }
+    if (!isdigit(s[3])) { 
+        return false; 
+    }
+    if (s[0] =='0' || s[0] =='9' ||s[2]=='0' || s[2]=='9') { 
+        return false; 
+    }
+    if (s[1] == '0' || s[1] == '9' || s[3] == '0' || s[3] == '9') { 
+        return false;
+    }
+    //can't move to self
+    if (s[0] == s[2] && s[1] == s[3]) { 
+        return false; 
+    } 
     return true;
 }
 void whiteCastle(char b[8][8], bool wcc, string move) {
@@ -1789,18 +1896,6 @@ inline std::ostream& operator << (std::ostream& os, const std::vector<T>& v)
 
     return os;
 }
-//bool const char[8][8]&::operator== (const char[8][8] &b, const char[8][8] &c)
-//{
-//    for (int i = 0; i < 8; ++i) {
-//        for (int j = 0; j < 8; ++j) {
-//            if (b[i][j] != c[i][j]) {
-//                return false;
-//            }
-//        }
-//    }
-//
-//    return true;
-//}
 
 /*
 To do list
@@ -1811,5 +1906,12 @@ then call size of vec
 
 
 convert string function to turn e2e4 into 6444
+
+
+create vector of strings of legal moves
+
+create a play vs computer option where the computer randomly makes a move
+from list of legal moves
+
 
 */
