@@ -10,7 +10,6 @@ Skills practiced during this project:
 - String methods
 - Pointers
 - Hash maps
-- OOP
 
 
 
