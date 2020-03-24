@@ -1,6 +1,5 @@
-# ChessCpp
+# Currently refactoring the project into classes.
 
-Currently refactoring the project into classes.
 
 Skills practiced during this project:
 - OOP
