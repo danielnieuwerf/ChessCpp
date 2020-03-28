@@ -19,7 +19,6 @@ void blackCastle(char[8][8], bool, string);
 bool blackCastleMoveIsValid(char[8][8], bool, string);
 bool blackKingIsInCheck(char[8][8], int, int);
 string convertBoardToString(char[8][8]);
-string convertString(string);
 bool enPassantAttempt(char[8][8], string, string);
 vector<int> findBlackKing(char[8][8]);
 vector<int> findWhiteKing(char[8][8]);
@@ -37,10 +36,10 @@ string getSouthWest(char[8][8], int, int);
 string getWest(char[8][8], int, int);
 void howToPlay();
 void initialBoard(char[8][8]);
-bool isCheckmate(char[8][8], bool, int, int, int, int,bool,bool);
+bool isCheckmate(char[8][8], bool, int, int, int, int, bool, bool);
 bool isDrawByLackOfMaterial(char[8][8]);
 bool isDrawByThreefoldRepetition(unordered_map<string, int>);
-bool isStalemate(char[8][8], bool, int, int, int, int,bool,bool);
+bool isStalemate(char[8][8], bool, int, int, int, int, bool, bool);
 bool makeEnPassentMove(char[8][8], string, string);
 void makeMove(char[8][8], string);
 void menu();
@@ -60,7 +59,7 @@ bool whiteCastleMoveIsValid(char[8][8], bool, string);
 bool whiteKingIsInCheck(char[8][8], int, int);
 
 
-int main(){
+int main() {
     menu();
 }
 
@@ -275,105 +274,6 @@ string convertBoardToString(char b[8][8]) {
     }
     return str;
 }
-string convertString(string t) {
-    // convert string e2e4 to 6444 etc
-    if (t == "r" || t == "R") {
-        return t;
-    }
-    if(t.size()!=4){
-        //return invalid move
-        return "9999";
-    }
-    // if we reach here t has length 4
-    if (!isalpha(t[0])) {
-        return "9999";
-    }
-    if (!isalpha(t[2])) {
-        return "9999";
-    }
-    if (!isdigit(t[1])) {
-        return "9999";
-    }
-    if (!isdigit(t[3])) {
-        return "9999";
-    }
-    t[0]=tolower(t[0]);
-    t[2]=tolower(t[2]);
-    // if we reach here t has form a0a0
-    // with a being a lower case letter and 0 a digit
-    if (t[1] == '0' || t[1] == '9') {
-        return false;
-    }
-    if (t[3] == '0' || t[3] == '9') {
-        return false;
-    }
-    if (t[0] > 'h' || t[2] > 'h') {
-        return false;
-    }
-    // if we reach here we have a valid move string
-    // such as e2e4 which should be 6444
-    string s="xxxx";
-    s[0] = '8' - (int)t[1]+48;
-    s[2] = '8' - (int)t[3]+48;
-    char temp = t[0];
-    char temp2 = t[2];
-    switch (temp) {
-    case 'a':
-        s[1] = '0';
-        break;
-    case 'b':
-        s[1] = '1';
-        break;
-    case 'c':
-        s[1] = '2';
-        break;
-    case 'd':
-        s[1] = '3';
-        break;
-    case 'e':
-        s[1] = '4';
-        break;
-    case 'f':
-        s[1] = '5';
-        break;
-    case 'g':
-        s[1] = '6';
-        break;
-    case 'h':
-        s[1] = '7';
-        break;
-    default: s[1] = '9';
-    }
-    switch (temp2) {
-    case 'a':
-        s[3] = '0';
-        break;
-    case 'b':
-        s[3] = '1';
-        break;
-    case 'c':
-        s[3] = '2';
-        break;
-    case 'd':
-        s[3] = '3';
-        break;
-    case 'e':
-        s[3] = '4';
-        break;
-    case 'f':
-        s[3] = '5';
-        break;
-    case 'g':
-        s[3] = '6';
-        break;
-    case 'h':
-        s[3] = '7';
-        break;
-    default: s[3] = '9';
-    }
-
-    return s;
-}
 bool enPassantAttempt(char b[8][8], string m, string pm) {
     /*  returns true if an attempt was made to move a pawn
         diagonally forward onto an empty square from row 3 or 4
@@ -459,7 +359,7 @@ void gameReplay(vector<string> m) {
 
             // special cases 
             // en passant
-            if (temp == 'p' && col2!=col1 && temp2 == '.') {
+            if (temp == 'p' && col2 != col1 && temp2 == '.') {
                 b[row1][col1] = '.';
                 b[row2][col2] = 'p';
                 b[3][col2] = '.';
@@ -505,12 +405,12 @@ void gameReplay(vector<string> m) {
             }
         }
         else {
-            break;      
+            break;
         }
         Sleep(1500);
         system("cls");
         cout << "Game replay!" << endl;
-        printBoard(b);  
+        printBoard(b);
     }
     cout << "\nMoves:" << endl;
     cout << m << endl;
@@ -546,7 +446,7 @@ void gameResult(bool ww, bool bw, bool draw, vector<string> m) {
     else if (x == 'n') {
         std::system("CLS");
         newGame();
-    }  
+    }
 }
 string getEast(char b[8][8], int r, int c) {
     // Starting from (r,c) return squares in the direction d
@@ -660,12 +560,12 @@ string getWest(char b[8][8], int r, int c) {
 void howToPlay() {
     system("cls");
     cout << "How to play:" << endl;
-    cout << "\nPieces move according to chess rules. To "<<endl;
-    cout << "make a move: enter 4 digits such as e2e4 "<<endl;
-    cout << "to move the piece at e2 to e4. The move e4"<<endl;
-    cout << "is invalid as the move must be 4 digits in"<<endl; 
+    cout << "\nPieces move according to chess rules. To " << endl;
+    cout << "make a move: enter 4 digits such as e2e4 " << endl;
+    cout << "to move the piece at e2 to e4. The move e4" << endl;
+    cout << "is invalid as the move must be 4 digits in" << endl;
     cout << "length. The only exception to this is the move" << endl;
-    cout << "r, which is the move of resignation."<<endl;
+    cout << "r, which is the move of resignation." << endl;
 
     cout << "\n\nYour move must be a legal chess move " << endl;
     cout << "otherwise the message \"invalid move\" " << endl;
@@ -703,11 +603,11 @@ void initialBoard(char b[8][8]) {
 bool isCheckmate(char b[8][8], bool turn, int wkr, int wkc, int bkr, int bkc, bool wcc, bool bcc) {
     //wcc-white can catle, bcc similarly for black
     //wkr- white king row, wkc-white king column etc...
-    if (turn && whiteKingIsInCheck(b,wkr,wkc)&& numLegalMoves(b,true,wcc,bcc)==0) { 
+    if (turn && whiteKingIsInCheck(b, wkr, wkc) && numLegalMoves(b, true, wcc, bcc) == 0) {
         return true;
     }
     else {
-        if (!turn && blackKingIsInCheck(b, bkr,bkc) && numLegalMoves(b,false,wcc,bcc)==0) {
+        if (!turn && blackKingIsInCheck(b, bkr, bkc) && numLegalMoves(b, false, wcc, bcc) == 0) {
             return true;
         }
     }
@@ -751,11 +651,11 @@ bool isDrawByThreefoldRepetition(unordered_map<string, int> mp) {
 bool isStalemate(char b[8][8], bool turn, int wkr, int wkc, int bkr, int bkc, bool wcc, bool bcc) {
     //wcc-white can catle, bcc similarly for black
     //wkr- white king row, wkc-white king column etc...
-    if (turn && !whiteKingIsInCheck(b, wkr, wkc) && numLegalMoves(b, true,wcc,bcc) == 0) {
+    if (turn && !whiteKingIsInCheck(b, wkr, wkc) && numLegalMoves(b, true, wcc, bcc) == 0) {
         return true;
     }
     else {
-        if (!turn && !blackKingIsInCheck(b, bkr, bkc) && numLegalMoves(b, false,wcc,bcc) == 0) {
+        if (!turn && !blackKingIsInCheck(b, bkr, bkc) && numLegalMoves(b, false, wcc, bcc) == 0) {
             return true;
         }
     }
@@ -866,7 +766,7 @@ void menu() {
 }
 void newGame() {
     bool gameover = false, checkmate = false, stalemate = false;
-    bool gameIsDraw = false, whiteWon=false, blackWon=false;
+    bool gameIsDraw = false, whiteWon = false, blackWon = false;
     bool whiteCanCastle = true, blackCanCastle = true;
     bool whiteTurn = true;
     char board[8][8];
@@ -888,10 +788,9 @@ void newGame() {
     while (!gameover) {
         cout << "Enter your move: ";
         cin >> s;
-        s = convertString(s);
-        cout << s;
+       
         // Resign
-        if (s == "R"|| s=="r"){
+        if (s == "R" || s == "r") {
             whiteTurn ? cout << "White resigned. " << endl : cout << "Black resigned. " << endl;
             whiteTurn ? blackWon = true : whiteWon = true;
             // add move to moves
@@ -902,7 +801,7 @@ void newGame() {
         while (!validString(s)) {
             cout << "invalid move, try another: ";
             cin >> s;
-            s = convertString(s);
+            
         }
         // Resign
         if (s == "R" || s == "r") {
@@ -1029,26 +928,26 @@ void newGame() {
             cout << "invalid move, try another: ";
         }
         // check for checkmate or stalemate or draw
-        if (isStalemate(board, whiteTurn,whiteKingRow,whiteKingCol,blackKingRow,blackKingCol,whiteCanCastle,blackCanCastle)) {
+        if (isStalemate(board, whiteTurn, whiteKingRow, whiteKingCol, blackKingRow, blackKingCol, whiteCanCastle, blackCanCastle)) {
             stalemate = true;
         }
         else if (isDrawByLackOfMaterial(board)) {
-            gameIsDraw = true;      
+            gameIsDraw = true;
         }
         else if (isDrawByThreefoldRepetition(boardStates)) {
             gameIsDraw = true;
         }
-        else if (isCheckmate(board, whiteTurn,whiteKingRow,whiteKingCol,blackKingRow,blackKingCol, whiteCanCastle, blackCanCastle)) {
+        else if (isCheckmate(board, whiteTurn, whiteKingRow, whiteKingCol, blackKingRow, blackKingCol, whiteCanCastle, blackCanCastle)) {
             checkmate = true;
         }
-        if (checkmate || stalemate|| gameIsDraw) {
+        if (checkmate || stalemate || gameIsDraw) {
             gameover = true;
         }
     }
 
     cout << endl;
 
-    gameResult(whiteWon,blackWon,gameIsDraw,moves);
+    gameResult(whiteWon, blackWon, gameIsDraw, moves);
 
 }
 int numLegalMoves(char b[8][8], bool turn, bool wcc, bool bcc) {
@@ -1071,7 +970,7 @@ int numLegalMoves(char b[8][8], bool turn, bool wcc, bool bcc) {
     }
 
     if (turn) {
-        for (int i = 0; i < 8;++i) {
+        for (int i = 0; i < 8; ++i) {
             for (int j = 0; j < 8; ++j) {
                 if (islower(b[i][j])) {
                     // if king
@@ -1120,30 +1019,31 @@ bool pawnPromotionNeeded(char b[8][8]) {
     return false;
 }
 void printBoard(char b[8][8]) {
+    cout << "  A  B  C  D  E  F  G  H " << endl;
     cout << "  -----------------------" << endl;
     for (int i = 0; i < 8; ++i) {
-        cout << 8-i;
+        cout << 8 - i;
         for (int j = 0; j < 8; ++j) {
             cout << "|" << b[i][j] << " ";
         }
-        cout << "|" << endl;
+        cout << "|" << 8 - i << endl;
     }
     cout << "  -----------------------" << endl;
     cout << "  A  B  C  D  E  F  G  H " << endl;
 }
-void printBoard(char b[8][8],bool turn) {
-    turn ? cout << " White's turn (lower case)"<<endl : cout << " Black's turn (upper case)"<<endl;
-    //cout << "  0  1  2  3  4  5  6  7 " << endl;
+void printBoard(char b[8][8], bool turn) {
+    turn ? cout << " White's turn (lower case)" << endl : cout << " Black's turn (upper case)" << endl;
+    cout << "  0  1  2  3  4  5  6  7 " << endl;
     cout << "  -----------------------" << endl;
     for (int i = 0; i < 8; ++i) {
-        cout << 8-i;
+        cout << i;
         for (int j = 0; j < 8; ++j) {
-            cout<<"|"<<b[i][j]<<" ";
+            cout << "|" << b[i][j] << " ";
         }
-        cout <<"|"<< endl;
+        cout << "|" << i << endl;
     }
-    cout << "  -----------------------"<<endl;
-    cout << "  A  B  C  D  E  F  G  H " << endl;
+    cout << "  -----------------------" << endl;
+    cout << "  0  1  2  3  4  5  6  7 " << endl;
 }
 void rules() {
     system("cls");
@@ -1246,7 +1146,7 @@ bool validMove(char b[8][8], string s, bool turn) {
     switch (temp) {
     case 'p': {
         if (row1 == row2 + 1 && col1 == col2 && temp2 == '.') { return true; }
-        if (row2==4  && row1 == 6 && col1 == col2 && temp2 == '.' && b[row2 + 1][col1] == '.') { return true; }
+        if (row2 == 4 && row1 == 6 && col1 == col2 && temp2 == '.' && b[row2 + 1][col1] == '.') { return true; }
         if (row1 == row2 + 1 && col1 == col2 + 1 && isupper(temp2)) { return true; }
         if (row1 == row2 + 1 && col1 == col2 - 1 && isupper(temp2)) { return true; }
         return false; }
@@ -1261,7 +1161,7 @@ bool validMove(char b[8][8], string s, bool turn) {
         if (row1 + 1 == row2 && col1 + 2 == col2 && (temp2 == '.' || isupper(temp2))) { return true; }
         if (row1 + 1 == row2 && col1 - 2 == col2 && (temp2 == '.' || isupper(temp2))) { return true; }
         if (row1 - 1 == row2 && col1 + 2 == col2 && (temp2 == '.' || isupper(temp2))) { return true; }
-        if (row1 - 1 == row2 && col1 - 2 == col2 && (temp2 == '.' || isupper(temp2))) { return true; }  
+        if (row1 - 1 == row2 && col1 - 2 == col2 && (temp2 == '.' || isupper(temp2))) { return true; }
         if (row1 + 2 == row2 && col1 + 1 == col2 && (temp2 == '.' || isupper(temp2))) { return true; }
         if (row1 + 2 == row2 && col1 - 1 == col2 && (temp2 == '.' || isupper(temp2))) { return true; }
         if (row1 - 2 == row2 && col1 + 1 == col2 && (temp2 == '.' || isupper(temp2))) { return true; }
@@ -1645,31 +1545,28 @@ bool validString(string s) {
     if (s == "R" || s == "r") {
         return true;
     }
-    if (s.length() != 4) { 
+    if (s.length() != 4) {
         return false;
     }
-    if (!isdigit(s[0])) { 
+    if (!isdigit(s[0])) {
         return false;
     }
-    if (!isdigit(s[1])) { 
+    if (!isdigit(s[1])) {
         return false;
     }
     if (!isdigit(s[2])) {
         return false;
     }
-    if (!isdigit(s[3])) { 
-        return false; 
+    if (!isdigit(s[3])) {
+        return false;
     }
-    if (s[0] =='0' || s[0] =='9' ||s[2]=='0' || s[2]=='9') { 
-        return false; 
-    }
-    if (s[1] == '0' || s[1] == '9' || s[3] == '0' || s[3] == '9') { 
+    if (s[0] == '9' || s[1] == '9' || s[2] == '9' || s[3] == '9') {
         return false;
     }
     //can't move to self
-    if (s[0] == s[2] && s[1] == s[3]) { 
-        return false; 
-    } 
+    if (s[0] == s[2] && s[1] == s[3]) {
+        return false;
+    }
     return true;
 }
 void whiteCastle(char b[8][8], bool wcc, string move) {
@@ -1710,7 +1607,7 @@ bool whiteCastleMoveIsValid(char b[8][8], bool wcc, string move) {
                 copy[i][j] = b[i][j];
             }
         }
-        
+
         makeMove(copy, "7475");
         if (whiteKingIsInCheck(copy, 7, 5)) { return false; }
     }
@@ -1876,7 +1773,7 @@ inline std::ostream& operator << (std::ostream& os, const std::vector<T>& v)
 
     int n = 1;
     os << "1. [";
-    for (auto ii=v.begin(); ii != v.end(); ++ii)
+    for (auto ii = v.begin(); ii != v.end(); ++ii)
     {
         if (n > 1) {
             os << n << ". [";
@@ -1902,16 +1799,14 @@ To do list
 
 num legal moves function!!!!!!!!!!!!!!!!
 TURN THIS INTO A VEC OF STRINGS FOR LEGAL MOVES
-then call size of vec 
+then call size of vec
 
 
 convert string function to turn e2e4 into 6444
 
 
-create vector of strings of legal moves
-
 create a play vs computer option where the computer randomly makes a move
-from list of legal moves
+from list of legal moves (very weak chess engine)
 
 
 */
